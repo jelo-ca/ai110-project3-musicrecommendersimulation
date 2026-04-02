@@ -48,7 +48,7 @@ With the limited amount of data, the user profile will only contain configuratio
 
 The recommender uses a weighted system that matches a songs features to a user's preference to calculate a final ranking.
 
-![Recommender System Diagram](docs\recommend_system_diagram_d1.png)
+![Recommender System Diagram](docs/recommend_system_diagram_d1.png)
 
 The list of songs are ordered by their final scores and the top-k would be recommended
 
@@ -58,7 +58,7 @@ score = 3.0 _ (song.genre == user.favorite_genre) + 2.0 _ (song.mood == user.fav
 
 ### CLI Output
 
-![CLI Output](docs\recommendation_output_cli.png)
+![CLI Output](docs/recommendation_output_cli.png)
 
 ## Getting Started
 
