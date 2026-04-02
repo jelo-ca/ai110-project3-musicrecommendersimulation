@@ -14,7 +14,14 @@ from recommender import load_songs, recommend_songs
 
 def main() -> None:
     songs = load_songs("data/songs.csv") 
+    
+    print("=" * 50 + "")
+    print("Welcome to the Music Recommender Simulation!")
+    print("=" * 50 + "")
 
+    print(f"Loaded Songs: {len(songs)}")
+    print("-" * 50 + "")
+    
     # Two contrasting profiles to test differentiation
     rock_user = {
         "favorite_genre": "rock",
