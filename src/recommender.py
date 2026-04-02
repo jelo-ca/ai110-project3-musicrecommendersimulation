@@ -73,6 +73,27 @@ def score_song(song: Dict, user_prefs: Dict) -> float:
     )
 
 
+def explain_song(song: Dict, user_prefs: Dict) -> str:
+    """
+    Returns a human-readable explanation of why a song scored the way it did.
+    """
+    parts = []
+
+    parts.append(f"genre: {'match' if song['genre'] == user_prefs['favorite_genre'] else song['genre']}")
+    parts.append(f"mood: {'match' if song['mood'] == user_prefs['favorite_mood'] else song['mood']}")
+
+    energy_diff = abs(song["energy"] - user_prefs["target_energy"])
+    energy_label = "exact" if energy_diff <= 0.05 else "close" if energy_diff <= 0.15 else "off"
+    parts.append(f"energy: {energy_label} ({song['energy']:.2f})")
+
+    acoustic_label = "high" if song["acousticness"] >= 0.5 else "low"
+    parts.append(f"acoustic: {acoustic_label}")
+
+    parts.append(f"valence: {song['valence']:.2f}")
+
+    return " | ".join(parts)
+
+
 def load_songs(csv_path: str) -> List[Dict]:
     """
     Loads songs from a CSV file.
@@ -105,4 +126,4 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tup
     """
     scored = [(song, score_song(song, user_prefs)) for song in songs]
     ranked = sorted(scored, key=lambda pair: pair[1], reverse=True)
-    return [(song, s, f"Score: {s:.2f}") for song, s in ranked[:k]]
+    return [(song, s, explain_song(song, user_prefs)) for song, s in ranked[:k]]

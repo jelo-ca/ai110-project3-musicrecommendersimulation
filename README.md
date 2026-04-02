@@ -56,7 +56,9 @@ The list of songs are ordered by their final scores and the top-k would be recom
 
 score = 3.0 _ (song.genre == user.favorite_genre) + 2.0 _ (song.mood == user.favorite*mood) + 1.5 * (1 - abs(song.energy - user.target*energy)) + 1.0 * (song.acousticness if user.likes_acoustic else 1 - song.acousticness) + 0.5 \* song.valence
 
----
+### CLI Output
+
+![CLI Output](docs\recommendation_output_cli.png)
 
 ## Getting Started
 
