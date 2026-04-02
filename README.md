@@ -21,13 +21,40 @@ Explain your design in plain language.
 
 Some prompts to answer:
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
 - What information does your `UserProfile` store
 - How does your `Recommender` compute a score for each song
 - How do you choose which songs to recommend
 
-You can include a simple diagram or bullet list if helpful.
+From my understanding, real-world recommendations work by finding patterns within multiple users' behavioral data. Users are made a "taste" profile about items they prefer through their behavior. For songs, its about the minutes they spend listening, skips, likes, saves. A user's profile is then compared to another user's who has similar taste and are recommended a "people who like this also liked...". For this to work, songs must be analyzed to recognize the patterns within them as well. Someone may like both classical music and rock, but another may only like rock. Suggesting classical to the latter can disrupt their listening experience.
+
+### Song Features:
+
+- genre
+- mood
+- energy
+- acousticness
+- valence
+
+### User Features:
+
+- favorite_genre
+- favorite_mood
+- target_energy
+- likes_acoustic
+
+With the limited amount of data, the user profile will only contain configurations either automatically calculated (determined by their listening data) OR manually set by the user.
+
+### The Recommender
+
+The recommender uses a weighted system that matches a songs features to a user's preference to calculate a final ranking.
+
+![Recommender System Diagram](docs\recommend_system_diagram_d1.png)
+
+The list of songs are ordered by their final scores and the top-k would be recommended
+
+#### Scoring Formula
+
+score = 3.0 _ (song.genre == user.favorite_genre) + 2.0 _ (song.mood == user.favorite_mood) + 1.5 _ (1 - abs(song.energy - user.target_energy)) + 1.0 _ (song.acousticness if user.likes_acoustic else 1 - song.acousticness) + 0.5 \* song.valence
 
 ---
 
@@ -41,6 +68,8 @@ You can include a simple diagram or bullet list if helpful.
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+
+   ```
 
 2. Install dependencies
 
@@ -101,12 +130,11 @@ Write 1 to 2 paragraphs here about what you learned:
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
 
-
 ---
 
 ## 7. `model_card_template.md`
 
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
+Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}
 
 ```markdown
 # 🎧 Model Card - Music Recommender Simulation
@@ -158,6 +186,7 @@ Describe your dataset.
 Where does your recommender work well
 
 You can think about:
+
 - Situations where the top results "felt right"
 - Particular user profiles it served well
 - Simplicity or transparency benefits
@@ -169,6 +198,7 @@ You can think about:
 Where does your recommender struggle
 
 Some prompts:
+
 - Does it ignore some genres or moods
 - Does it treat all users as if they have the same taste shape
 - Is it biased toward high energy or one genre by default
@@ -181,6 +211,7 @@ Some prompts:
 How did you check your system
 
 Examples:
+
 - You tried multiple user profiles and wrote down whether the results matched your expectations
 - You compared your simulation to what a real app like Spotify or YouTube tends to recommend
 - You wrote tests for your scoring logic
@@ -208,4 +239,4 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
-
+```
