@@ -52,9 +52,9 @@ The recommender uses a weighted system that matches a songs features to a user's
 
 The list of songs are ordered by their final scores and the top-k would be recommended
 
-#### Scoring Formula
+#### Algorithm Recipe
 
-score = 3.0 _ (song.genre == user.favorite_genre) + 2.0 _ (song.mood == user.favorite_mood) + 1.5 _ (1 - abs(song.energy - user.target_energy)) + 1.0 _ (song.acousticness if user.likes_acoustic else 1 - song.acousticness) + 0.5 \* song.valence
+score = 3.0 _ (song.genre == user.favorite_genre) + 2.0 _ (song.mood == user.favorite*mood) + 1.5 * (1 - abs(song.energy - user.target*energy)) + 1.0 * (song.acousticness if user.likes_acoustic else 1 - song.acousticness) + 0.5 \* song.valence
 
 ---
 

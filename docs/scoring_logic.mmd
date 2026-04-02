@@ -11,7 +11,6 @@ flowchart TD
     S --> SM[mood]
     S --> SE[energy]
     S --> SV[valence]
-    S --> SD[danceability]
     S --> SAC[acousticness]
 
     UG & SG --> GM{"genre\nmatch?"}
@@ -23,7 +22,7 @@ flowchart TD
     GM -->|"yes → +3.0\nno  → +0.0"| SCORE
     MM -->|"yes → +2.0\nno  → +0.0"| SCORE
     ED -->|"× 1.5"| SCORE
-    AB -->|"yes → acousticness × 1.0\nno  → +0.0"| SCORE
+    AB -->|"yes → acousticness × 1.0\nno  → (1 - acousticness) × 1.0"| SCORE
     VB -->|"valence × 0.5"| SCORE
 
     SCORE["Total Score\n= genre_match×3.0\n+ mood_match×2.0\n+ energy_closeness×1.5\n+ acousticness_bonus×1.0\n+ valence×0.5"]

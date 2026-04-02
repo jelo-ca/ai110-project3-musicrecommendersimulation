@@ -15,8 +15,22 @@ from recommender import load_songs, recommend_songs
 def main() -> None:
     songs = load_songs("data/songs.csv") 
 
-    # Starter example profile
-    user_prefs = {"genre": "pop", "mood": "happy", "energy": 0.8}
+    # Two contrasting profiles to test differentiation
+    rock_user = {
+        "favorite_genre": "rock",
+        "favorite_mood": "intense",
+        "target_energy": 0.90,
+        "likes_acoustic": False,
+    }
+
+    lofi_user = {
+        "favorite_genre": "lofi",
+        "favorite_mood": "chill",
+        "target_energy": 0.38,
+        "likes_acoustic": True,
+    }
+
+    user_prefs = lofi_user  # swap to rock_user to compare
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
 
