@@ -9,7 +9,7 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
-from colorama import init, Fore, Style
+from colorama import init, Style
 from tabulate import tabulate
 from recommender import load_songs, recommend_songs
 from config import DEV
@@ -174,12 +174,13 @@ def main() -> None:
         recommendations = recommend_songs(user_prefs, songs, k=5)
 
         print(f"\n{Style.BRIGHT}Top Recommendations:{Style.RESET_ALL}")
-        print("-" * 50)
+        rows = []
         for i, (song, score, explanation) in enumerate(recommendations, start=1):
-            print(f"{Fore.CYAN}{i}. {song['title']}{Style.RESET_ALL} by {song['artist']}")
-            print(f"   {Fore.YELLOW}Score  :{Style.RESET_ALL} {score:.2f}")
-            print(f"   {Fore.GREEN}Reason :{Style.RESET_ALL} {explanation}")
-            print("-" * 50)
+            reasons = explanation.replace(" | ", "\n")
+            rows.append([i, song["title"], song["artist"], f"{score:.2f}", reasons])
+
+        headers = ["#", "Title", "Artist", "Score", "Reasons"]
+        print(tabulate(rows, headers=headers, tablefmt="grid", maxcolwidths=[3, 22, 18, 6, 42]))
 
 
 if __name__ == "__main__":
