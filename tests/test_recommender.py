@@ -13,6 +13,9 @@ def make_small_recommender() -> Recommender:
             valence=0.9,
             danceability=0.8,
             acousticness=0.2,
+            year=2023,
+            popularity=75,
+            instrumentalness=0.05,
         ),
         Song(
             id=2,
@@ -25,6 +28,9 @@ def make_small_recommender() -> Recommender:
             valence=0.6,
             danceability=0.5,
             acousticness=0.9,
+            year=2021,
+            popularity=45,
+            instrumentalness=0.85,
         ),
     ]
     return Recommender(songs)
@@ -33,7 +39,7 @@ def make_small_recommender() -> Recommender:
 def test_recommend_returns_songs_sorted_by_score():
     user = UserProfile(
         favorite_genre="pop",
-        favorite_mood="happy",
+        mood_weights={"happy": 1.0},
         target_energy=0.8,
         likes_acoustic=False,
     )
@@ -49,7 +55,7 @@ def test_recommend_returns_songs_sorted_by_score():
 def test_explain_recommendation_returns_non_empty_string():
     user = UserProfile(
         favorite_genre="pop",
-        favorite_mood="happy",
+        mood_weights={"happy": 1.0},
         target_energy=0.8,
         likes_acoustic=False,
     )

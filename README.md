@@ -21,18 +21,34 @@ From my understanding, real-world recommendations work by finding patterns withi
 
 ### Song Features:
 
-- genre
-- mood
-- energy
-- acousticness
-- valence
+| Feature | Type | Description |
+|---|---|---|
+| `genre` | string | Musical genre (pop, rock, jazz, lofi, etc.) |
+| `mood` | string | Emotional mood (happy, chill, intense, melancholic, etc.) |
+| `energy` | float 0–1 | Intensity and activity level |
+| `acousticness` | float 0–1 | Acoustic vs. electronic character |
+| `valence` | float 0–1 | Emotional positivity (0 = dark, 1 = bright) |
+| `tempo_bpm` | float | Beats per minute |
+| `danceability` | float 0–1 | Rhythmic suitability for dancing |
+| `instrumentalness` | float 0–1 | Degree of instrumental vs. vocal content |
+| `popularity` | int 0–100 | Popularity score (higher = more mainstream) |
+| `year` | int | Release year |
 
 ### User Features:
 
-- favorite_genre
-- favorite_mood
-- target_energy
-- likes_acoustic
+| Feature | Type | Default | Description |
+|---|---|---|---|
+| `favorite_genre` | string | required | Target genre for matching |
+| `mood_weights` | dict | required | Weighted mood preferences, e.g. `{"happy": 0.7, "energetic": 0.3}` |
+| `target_energy` | float | required | Preferred energy level (0–1) |
+| `likes_acoustic` | bool | required | Preference for acoustic vs. electronic sound |
+| `target_valence` | float | `0.5` | Preferred emotional tone (0 = dark, 1 = bright) |
+| `prefers_instrumental` | bool | `False` | Rewards high instrumentalness when True |
+| `prefers_mainstream` | bool | `False` | Rewards high popularity scores when True |
+| `preferred_decade` | int | `2020` | Preferred release era (e.g. 1990, 2010, 2023) |
+| `liked_artists` | list | `[]` | Artists the user follows — triggers familiarity bonus |
+| `discovery_mode` | bool | `False` | Penalizes known artists to surface new ones |
+| `listen_history` | list | `[]` | Song IDs heard recently (oldest → newest) — triggers repeat decay |
 
 With the limited amount of data, the user profile will only contain configurations either automatically calculated (determined by their listening data) OR manually set by the user.
 
@@ -46,7 +62,26 @@ The list of songs are ordered by their final scores and the top-k would be recom
 
 #### Algorithm Recipe
 
-score = 3.0 _ (song.genre == user.favorite_genre) + 2.0 _ (song.mood == user.favorite*mood) + 1.5 * (1 - abs(song.energy - user.target*energy)) + 1.0 * (song.acousticness if user.likes_acoustic else 1 - song.acousticness) + 0.5 \* song.valence
+The score is the weighted sum of 10 components, minus an optional repeat penalty:
+
+```
+score = 3.00 × genre_similarity(song.genre, user.favorite_genre)          ← graph-based, 0–1
+      + 2.00 × mood_weight_match(song.mood, user.mood_weights)             ← weighted, normalized
+      + 1.50 × (1 - |song.energy - user.target_energy|)                   ← linear proximity
+      + 1.00 × (song.acousticness if likes_acoustic else 1 - acousticness) ← preference-aware
+      + 0.75 × (song.instrumentalness if prefers_instrumental else 1 - instrumentalness)
+      + 0.50 × (1 - |song.valence - user.target_valence|)                 ← user-aligned
+      + 0.50 × artist_bonus(song.artist, liked_artists, discovery_mode)   ← familiarity/discovery
+      + 0.50 × (popularity/100 if prefers_mainstream else 1 - popularity/100)
+      + 0.50 × max(0, 1 - |song.year - user.preferred_decade| / 10)       ← era affinity
+      − 0.50 / recency_rank   (only if song.id is in user.listen_history)  ← repeat decay
+```
+
+**Genre similarity** uses a weighted graph instead of binary matching — adjacent genres like `folk → acoustic` score 0.7 and `rock → metal` score 0.6, giving partial credit instead of zero.
+
+**Mood matching** supports multiple moods with weights (e.g. `{"happy": 0.6, "energetic": 0.4}`), normalized so the combined mood score stays between 0 and 1.
+
+**Repeat decay** subtracts more for more recently heard songs: the most recent song in history loses `0.5`, the second-most-recent loses `0.25`, and so on.
 
 ### CLI Output
 
@@ -91,43 +126,61 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## User Profile Outputs
 
-**rock_user** — genre: rock, mood: intense, energy: 0.90, acoustic: no
+**rock_user** — genre: rock, moods: intense, energy: 0.90, acoustic: no
 
-Storm Runner is a runaway winner — the only song that hits both genre and mood, giving it a large score gap over 2nd place. The rest of the top 5 fills in with high-energy, low-acousticness songs from other genres, showing how dominant the combined genre+mood weight (5 pts) is.
+Storm Runner wins by a wide margin — the only song that hits both genre and mood. Iron & Rust (metal) now scores 2nd thanks to the genre similarity graph giving `metal → rock` a 0.6 credit, which was previously zero. Niche popularity scores also benefit this user since they prefer underground rock.
 
 ![rock_user output](docs/user_1.png)
 
 ---
 
-**lofi_user** — genre: lofi, mood: chill, energy: 0.38, acoustic: yes
+**lofi_user** — genre: lofi, moods: chill, energy: 0.38, acoustic: yes, prefers_instrumental: yes
 
-The two lofi/chill songs (Library Rain, Midnight Coding) lock in the top 2. Focus Flow ranks 3rd despite a mood mismatch because it shares the lofi genre — genre weight alone keeps it ahead of songs with better mood fits. High acousticness also lifts ambient/folk tracks into the lower spots.
+Library Rain and Midnight Coding lock the top 2. With `prefers_instrumental: True`, ambient tracks like Spacewalk Thoughts (instrumentalness: 0.95) climb significantly — they now outscore Focus Flow which has a mood mismatch. The instrumental preference reshapes the lower half of the list toward wordless tracks.
 
-**pop_user** — genre: pop, mood: happy, energy: 0.75, acoustic: no
+**pop_user** — genre: pop, moods: happy, energy: 0.75, acoustic: no, prefers_mainstream: yes, preferred_decade: 2023
 
-Sunrise City wins cleanly. Gym Hero ranks 2nd even though its mood is "intense" rather than "happy" — the shared pop genre is enough to pull it above songs that match on mood but not genre. Pixel Parade and Rooftop Lights cluster tightly in 3rd/4th using happy mood alone.
+Sunrise City still wins, but now Pixel Parade and Gym Hero climb further because they're both high-popularity (75, 72) and recent (2023). Rooftop Lights (indie pop, 2021) drops slightly despite a genre similarity score of 0.7 — it loses on both popularity and era compared to the newer entries.
 
 ![lofi_user and pop_user output](docs/user_2.png)
 
 ---
 
-**jazz_user** — genre: jazz, mood: relaxed, energy: 0.45, acoustic: yes
+**jazz_user** — genre: jazz, moods: relaxed, energy: 0.45, acoustic: yes, prefers_instrumental: yes, preferred_decade: 2019
 
-Coffee Shop Stories is the only jazz/relaxed song, so it wins by a wide margin. After that, the algorithm leans on relaxed mood (Sunday Stroll, Blue Velvet Hours) and high acousticness to fill the remaining slots, pulling from soul and acoustic genres.
+Coffee Shop Stories wins by a large margin — it's the only jazz/relaxed song, released in 2019 (era match), and has moderate instrumentalness (0.30). Blue Velvet Hours (soul) holds 2nd via the `jazz → soul` 0.6 similarity credit. Lofi/ambient tracks appear in 4th/5th because their high instrumentalness compensates for genre mismatch.
 
-**edm_user** — genre: edm, mood: energetic, energy: 0.95, acoustic: no
+**edm_user** — genre: edm, moods: energetic, energy: 0.95, acoustic: no
 
-No EDM songs exist in the catalog, so the genre bonus is zero for every song. The algorithm falls back entirely on mood (energetic) and energy proximity — Club After Dark and Habanera Dreams float to the top purely on "energetic" mood matches. This reveals a catalog gap: a user with a missing genre gets weaker, less personalized results.
+No EDM songs in the catalog — genre similarity is 0 for every song. The algorithm still falls back on mood and energy. Club After Dark and Habanera Dreams lead on "energetic" mood. This is an unchanged catalog gap: a user with a missing genre gets weaker, less personalized results.
 
 ![jazz_user and edm_user output](docs/user_3.png)
 
 ---
 
-**sad_fan** _(edge case)_ — genre: folk, mood: melancholic, energy: 0.30, acoustic: yes — tests whether the algorithm unfairly boosts high-valence songs for users who prefer dark/sad music.
+**sad_fan** _(edge case)_ — genre: folk, moods: melancholic, energy: 0.30, acoustic: yes, target_valence: 0.25
 
-**walking_contradiction** _(edge case)_ — genre: metal, mood: relaxed, energy: 0.95, acoustic: yes — every preference conflicts with another; the algorithm silently picks whichever song loses the least.
+With `target_valence: 0.25`, the valence scoring now actively rewards dark songs instead of unconditionally adding upbeat valence. Hollow Mountains (valence: 0.28) scores near-perfectly on valence; previously it was penalized relative to brighter songs. Celeste (classical, melancholic) now surfaces as 2nd via the `folk → classical` 0.3 similarity credit.
+
+**walking_contradiction** _(edge case)_ — genre: metal, moods: relaxed, energy: 0.95, acoustic: yes
+
+Every preference still conflicts with another. However, Iron & Rust now earns genre credit (metal = exact match, score: 1.0) and surfaces as the clear #1. The genre similarity graph separates it from the field. The algorithm still picks whichever song loses least overall — the contradiction is not resolved, just reordered.
 
 ![sad_fan and walking_contradiction output](docs/user_edgecase.png)
+
+---
+
+**mixed_mood_user** _(new)_ — genre: pop, moods: happy (0.6) + energetic (0.4), energy: 0.80, acoustic: no
+
+Demonstrates multi-mood tolerance. Sunrise City and Rooftop Lights score on the "happy" weight (0.6); energetic songs like Gym Hero score on the "energetic" weight (0.4). Songs that match neither mood still compete on genre and energy — the partial credit keeps rankings more competitive than a single-mood profile.
+
+**repeat_listener** _(new)_ — genre: lofi, moods: chill, prefers_instrumental: yes, listen_history: [2, 4, 9], liked_artists: [LoRoom, Paper Lanterns]
+
+Demonstrates anti-repetition decay and artist familiarity together. LoRoom and Paper Lanterns get the +0.5 artist bonus but also take the repeat penalty (-0.50 for most recent, -0.25 and -0.17 for older). Library Rain still ranks 1st because its penalty is smaller and the artist bonus more than covers it. Spacewalk Thoughts climbs to 3rd — no familiarity bonus but also no penalty, so repeat-free songs become more competitive.
+
+**discovery_user** _(new)_ — genre: jazz, moods: relaxed (0.7) + chill (0.3), discovery_mode: yes, liked_artists: [Slow Stereo], prefers_mainstream: no
+
+Coffee Shop Stories still ranks 1st despite being by a known artist (Slow Stereo is penalized, not zeroed). Blue Velvet Hours jumps to 2nd, earning both the discovery bonus (+0.3) and the `jazz → soul` similarity credit. Niche songs gain an additional edge from `prefers_mainstream: False`, pulling lesser-known tracks ahead of higher-charting ones.
 
 ---
 
@@ -152,21 +205,29 @@ Genre matching provides a flat +3.0 to the score, theoretically affecting rankin
 
 ### Filter Bubbles
 
-**Binary genre lock-in (highest risk)** — Genre matching is exact and all-or-nothing, with the highest weight (3.0). A genre match adds a flat +3.0 bonus that no combination of energy, acoustics, and valence can overcome (their combined max is only 3.0). Users are almost always shown songs from their stated genre, making cross-genre discovery nearly impossible. Semantically related genres like "indie pop" vs "pop" or "folk" vs "acoustic" get zero credit.
+**Genre still dominates** — Even with the similarity graph, genre carries the highest weight (3.0). An exact genre match still adds a +3.0 bonus that mood + energy alone cannot fully overcome. Cross-genre discovery is more possible than before (via partial credit) but the system still strongly favors the user's stated genre.
 
-**Binary mood lock-in** — Mood matching works the same way (weight 2.0). A genre + mood double-match gives +5.0, making any song without both uncompetitive. Related moods like "energetic" and "intense" are treated as completely different.
+**No diversity enforcement** — The top-k result is a pure score sort. All 5 recommendations can still collapse into the same genre/mood cluster. There is no mechanism to enforce artist or genre variety across the final list.
 
-**No diversity enforcement** — The top-k result is a pure score sort. All 5 recommendations can (and often do) collapse into the same genre and mood cluster, with no mechanism to surface variety across artists or sub-genres.
+**Out-of-catalog genre falls back silently** — If a user's `favorite_genre` has no exact or adjacent match in the catalog (e.g., `edm_user`), all genre scores are 0 and the system falls back to mood and energy with no user-facing message.
 
 ### Biases
 
-**Unconditional valence bonus (biases toward happy music)** — Valence is always added positively (`0.5 × song.valence`) regardless of user preference. There is no `target_valence` field in the user profile. A user who prefers dark or sad music (like `sad_fan`) still has upbeat songs scored higher all else equal. "Hollow Mountains" (the ideal melancholic folk match) scores +0.14 from valence while a pop song with valence 0.90 scores +0.45 — a systematic +0.31 bias against emotionally dark content for every user.
+**`danceability` and `tempo_bpm` are still unused** — Both fields are loaded from the CSV but never scored. Users with strong rhythm or tempo preferences have no way to express that signal.
 
-**`danceability` and `tempo_bpm` are ignored** — Both fields are loaded from the CSV and stored but never used in scoring. Users with strong preferences for rhythm or tempo have no way to express that, and the system discards that signal entirely.
+**Contradictory preferences fail silently** — A user like `walking_contradiction` (high energy + likes acoustic) has self-conflicting preferences because high-energy songs have very low acousticness in this catalog. The algorithm picks whichever song "loses least" with no feedback to the user.
 
-**Silent out-of-catalog genre failure** — If a user's `favorite_genre` is not in the catalog (e.g., `edm_user`), genre match is 0 for every song and the system falls back silently to mood and energy with no indication to the user that their genre preference was unserviceable.
+**Popularity and era signals are symmetric but uncalibrated** — `WEIGHT_POPULARITY` and `WEIGHT_ERA` are set to 0.5 each, meaning a perfectly niche or perfectly mainstream song can swing the score by ±0.5. In catalogs where many songs cluster in the same era or popularity band, these attributes may add little differentiation.
 
-**Contradictory preferences fail silently** — A user like `walking_contradiction` (high energy + likes acoustic) has self-conflicting preferences because high-energy songs have very low acousticness in this catalog. The algorithm picks whichever song "loses least" with no feedback to the user that their preferences are in conflict.
+### Fixed in this version
+
+| Previously a bias | How it was addressed |
+|---|---|
+| Binary genre lock-in | Genre similarity graph — partial credit for adjacent genres (0.3–0.7) |
+| Binary mood lock-in | Multi-mood `mood_weights` dict — normalized weighted match |
+| Unconditional valence boost | `target_valence` in user profile — valence now scored as proximity |
+| No repeat awareness | `listen_history` + recency-weighted decay penalty |
+| No artist personalization | `liked_artists` bonus and `discovery_mode` penalty |
 
 ---
 
