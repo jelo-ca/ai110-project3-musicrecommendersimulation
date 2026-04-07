@@ -83,9 +83,86 @@ score = 3.00 × genre_similarity(song.genre, user.favorite_genre)          ← g
 
 **Repeat decay** subtracts more for more recently heard songs: the most recent song in history loses `0.5`, the second-most-recent loses `0.25`, and so on.
 
+---
+
+### Ranking Strategies
+
+The CLI offers three interchangeable ranking strategies. Each uses the same song catalog and user profile but re-weights the scoring components to answer a different question.
+
+#### 1. Balanced *(default)*
+
+The standard approach — all components contribute proportionally.
+
+```
+score = 3.00 × genre_similarity
+      + 2.00 × mood_match
+      + 1.50 × energy_proximity
+      + 1.00 × acousticness_preference
+      + 0.75 × instrumentalness_preference
+      + 0.50 × valence_proximity
+      + 0.50 × artist_bonus / discovery_penalty
+      + 0.50 × popularity_preference
+      + 0.50 × era_affinity
+      − 0.50 / recency_rank
+```
+
+Best for users with clearly-defined genre and mood preferences who want well-rounded matches.
+
+#### 2. Vibe Match
+
+Mood, energy, and audio feel dominate — genre labels are a light tiebreaker. Artist familiarity and popularity are ignored entirely.
+
+```
+score = 5.00 × mood_match
+      + 4.00 × energy_proximity
+      + 2.00 × valence_proximity
+      + 2.00 × acousticness_preference
+      + 0.50 × instrumentalness_preference
+      + 0.50 × genre_similarity        ← tiebreaker only
+      − 0.50 / recency_rank
+```
+
+A pop song and a jazz song with identical energy and mood will score the same — genre doesn't gate them out. Best for "how do I want to feel right now" browsing, or finding cross-genre songs that share a sonic feel.
+
+#### 3. Trend Chaser
+
+Popularity and recency dominate, anchored to 2024. Acousticness, valence, instrumentalness, and artist preferences are ignored.
+
+```
+score = 5.00 × (song.popularity / 100)
+      + 3.00 × max(0, 1 − |song.year − 2024| / 8)   ← 8-year decay window
+      + 1.50 × mood_match
+      + 1.00 × energy_proximity
+      + 0.75 × genre_similarity
+      − 0.50 / recency_rank
+```
+
+A well-matched but obscure song will lose to a high-popularity 2023 release. Best for discovering what is currently popular within a mood or energy level.
+
+#### Strategy Comparison
+
+| Component | Balanced | Vibe Match | Trend Chaser |
+|---|:---:|:---:|:---:|
+| Genre similarity | 3.00 | 0.50 | 0.75 |
+| Mood match | 2.00 | 5.00 | 1.50 |
+| Energy proximity | 1.50 | 4.00 | 1.00 |
+| Valence proximity | 0.50 | 2.00 | — |
+| Acousticness | 1.00 | 2.00 | — |
+| Instrumentalness | 0.75 | 0.50 | — |
+| Artist bonus | 0.50 | — | — |
+| Popularity | 0.50 | — | 5.00 |
+| Era affinity | 0.50 | — | 3.00 *(anchored to 2024)* |
+| Repeat decay | −0.50 | −0.50 | −0.50 |
+
+---
+
 ### CLI Output
 
-![CLI Output](docs/recommendation_output_cli.png)
+The CLI is interactive — arrow keys select a user profile and ranking strategy, then results are displayed in a formatted table. Run with:
+
+```bash
+python -m src.main
+```
 
 ## Getting Started
 
