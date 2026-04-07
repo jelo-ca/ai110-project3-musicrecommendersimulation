@@ -54,20 +54,72 @@ def main() -> None:
         "likes_acoustic": True,
     }
 
-    user_prefs = lofi_user  # swap to rock_user to compare
+    pop_user = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.75,
+        "likes_acoustic": False,
+    }
 
-    if DEV:
-        print_dev_info(user_prefs)
+    jazz_user = {
+        "favorite_genre": "jazz",
+        "favorite_mood": "relaxed",
+        "target_energy": 0.45,
+        "likes_acoustic": True,
+    }
 
-    recommendations = recommend_songs(user_prefs, songs, k=5)
+    edm_user = {
+        "favorite_genre": "edm",
+        "favorite_mood": "energetic",
+        "target_energy": 0.95,
+        "likes_acoustic": False,
+    }
 
-    print(f"\n{Style.BRIGHT}Top Recommendations:{Style.RESET_ALL}")
-    print("-" * 50)
-    for i, (song, score, explanation) in enumerate(recommendations, start=1):
-        print(f"{Fore.CYAN}{i}. {song['title']}{Style.RESET_ALL} by {song['artist']}")
-        print(f"   {Fore.YELLOW}Score  :{Style.RESET_ALL} {score:.2f}")
-        print(f"   {Fore.GREEN}Reason :{Style.RESET_ALL} {explanation}")
+    sad_fan = {
+        "favorite_genre": "folk",
+        "favorite_mood": "melancholic",
+        "target_energy": 0.30,
+        "likes_acoustic": True,
+        # Edge case: valence is unconditionally additive — no target_valence in the
+        # scoring formula, so upbeat songs always score higher than dark ones all else equal.
+    }
+
+    walking_contradiction = {
+        "favorite_genre": "metal",   # not in catalog; closest is rock
+        "favorite_mood": "relaxed",  # opposite of what metal songs carry
+        "target_energy": 0.95,       # high energy...
+        "likes_acoustic": True,      # ...but high-energy songs have acousticness ~0.05-0.10
+        # Edge case: every preference fights another — the algorithm silently picks
+        # whichever song loses least across all contradictions.
+    }
+
+    all_users = {
+        "rock_user": rock_user,
+        "lofi_user": lofi_user,
+        "pop_user": pop_user,
+        "jazz_user": jazz_user,
+        "edm_user": edm_user,
+        "sad_fan": sad_fan,
+        "walking_contradiction": walking_contradiction,
+    }
+
+    for name, user_prefs in all_users.items():
+        print(f"\n{Style.BRIGHT}{'=' * 50}{Style.RESET_ALL}")
+        print(f"{Style.BRIGHT}User: {name}{Style.RESET_ALL}")
+        print("=" * 50)
+
+        if DEV:
+            print_dev_info(user_prefs)
+
+        recommendations = recommend_songs(user_prefs, songs, k=5)
+
+        print(f"\n{Style.BRIGHT}Top Recommendations:{Style.RESET_ALL}")
         print("-" * 50)
+        for i, (song, score, explanation) in enumerate(recommendations, start=1):
+            print(f"{Fore.CYAN}{i}. {song['title']}{Style.RESET_ALL} by {song['artist']}")
+            print(f"   {Fore.YELLOW}Score  :{Style.RESET_ALL} {score:.2f}")
+            print(f"   {Fore.GREEN}Reason :{Style.RESET_ALL} {explanation}")
+            print("-" * 50)
 
 
 if __name__ == "__main__":
