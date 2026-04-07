@@ -144,17 +144,29 @@ By doubling the energy, 4 out of the 7 Users saw a slight shift in their ranking
 
 Adding tempo to the weighing system
 
+### Halfing Genre Matching
+
+Genre matching provides a flat +3.0 to the score, theoretically affecting rankings significantly. Results ranked after this weight was halfed to 1.5 surprisingly only shifted a few of the rankings, only affecting 3 users and only shifting 1 song significantly in a user's ranking (walking contradiction: Iron & Rust 1 -> 4) .
+
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
+### Filter Bubbles
 
-Examples:
+**Binary genre lock-in (highest risk)** — Genre matching is exact and all-or-nothing, with the highest weight (3.0). A genre match adds a flat +3.0 bonus that no combination of energy, acoustics, and valence can overcome (their combined max is only 3.0). Users are almost always shown songs from their stated genre, making cross-genre discovery nearly impossible. Semantically related genres like "indie pop" vs "pop" or "folk" vs "acoustic" get zero credit.
 
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
+**Binary mood lock-in** — Mood matching works the same way (weight 2.0). A genre + mood double-match gives +5.0, making any song without both uncompetitive. Related moods like "energetic" and "intense" are treated as completely different.
 
-You will go deeper on this in your model card.
+**No diversity enforcement** — The top-k result is a pure score sort. All 5 recommendations can (and often do) collapse into the same genre and mood cluster, with no mechanism to surface variety across artists or sub-genres.
+
+### Biases
+
+**Unconditional valence bonus (biases toward happy music)** — Valence is always added positively (`0.5 × song.valence`) regardless of user preference. There is no `target_valence` field in the user profile. A user who prefers dark or sad music (like `sad_fan`) still has upbeat songs scored higher all else equal. "Hollow Mountains" (the ideal melancholic folk match) scores +0.14 from valence while a pop song with valence 0.90 scores +0.45 — a systematic +0.31 bias against emotionally dark content for every user.
+
+**`danceability` and `tempo_bpm` are ignored** — Both fields are loaded from the CSV and stored but never used in scoring. Users with strong preferences for rhythm or tempo have no way to express that, and the system discards that signal entirely.
+
+**Silent out-of-catalog genre failure** — If a user's `favorite_genre` is not in the catalog (e.g., `edm_user`), genre match is 0 for every song and the system falls back silently to mood and energy with no indication to the user that their genre preference was unserviceable.
+
+**Contradictory preferences fail silently** — A user like `walking_contradiction` (high energy + likes acoustic) has self-conflicting preferences because high-energy songs have very low acousticness in this catalog. The algorithm picks whichever song "loses least" with no feedback to the user that their preferences are in conflict.
 
 ---
 
