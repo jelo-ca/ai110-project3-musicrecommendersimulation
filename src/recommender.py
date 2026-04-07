@@ -278,11 +278,98 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
 
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def score_song_vibe_match(song: Dict, user_prefs: Dict) -> float:
+    """
+    Vibe Match strategy: ranks by emotional and sonic feel.
+    Mood, energy, valence, and acoustics dominate; genre is a light tiebreaker.
+    Artist familiarity and popularity are ignored.
+    """
+    mood_weights = user_prefs["mood_weights"]
+    total_weight = sum(mood_weights.values()) or 1.0
+    mood_score = mood_weights.get(song["mood"], 0.0) / total_weight
+
+    energy_sim = 1 - abs(song["energy"] - user_prefs["target_energy"])
+
+    target_valence = user_prefs.get("target_valence", 0.5)
+    valence_score = 1 - abs(song["valence"] - target_valence)
+
+    acoustic_score = (
+        song["acousticness"] if user_prefs["likes_acoustic"]
+        else 1 - song["acousticness"]
+    )
+
+    instrumental_score = (
+        song["instrumentalness"] if user_prefs.get("prefers_instrumental", False)
+        else 1 - song["instrumentalness"]
+    )
+
+    genre_sim = _genre_sim(song["genre"], user_prefs["favorite_genre"])
+
+    score = (
+        5.0 * mood_score
+      + 4.0 * energy_sim
+      + 2.0 * valence_score
+      + 2.0 * acoustic_score
+      + 0.5 * instrumental_score
+      + 0.5 * genre_sim
+    )
+
+    history = user_prefs.get("listen_history", [])
+    if song["id"] in history:
+        reversed_history = list(reversed(history))
+        recency_rank = reversed_history.index(song["id"]) + 1
+        score -= WEIGHT_REPEAT_DECAY / recency_rank
+
+    return score
+
+
+def score_song_trend_chaser(song: Dict, user_prefs: Dict) -> float:
+    """
+    Trend Chaser strategy: surfaces what's popular and recently released.
+    Popularity and recency dominate; mood and energy are secondary signals.
+    """
+    pop_norm = song["popularity"] / 100
+    # Recency anchored to 2024 — decay over 8-year window
+    recency_score = max(0.0, 1 - abs(song["year"] - 2024) / 8)
+
+    mood_weights = user_prefs["mood_weights"]
+    total_weight = sum(mood_weights.values()) or 1.0
+    mood_score = mood_weights.get(song["mood"], 0.0) / total_weight
+
+    energy_sim = 1 - abs(song["energy"] - user_prefs["target_energy"])
+    genre_sim = _genre_sim(song["genre"], user_prefs["favorite_genre"])
+
+    score = (
+        5.0 * pop_norm
+      + 3.0 * recency_score
+      + 1.5 * mood_score
+      + 1.0 * energy_sim
+      + 0.75 * genre_sim
+    )
+
+    history = user_prefs.get("listen_history", [])
+    if song["id"] in history:
+        reversed_history = list(reversed(history))
+        recency_rank = reversed_history.index(song["id"]) + 1
+        score -= WEIGHT_REPEAT_DECAY / recency_rank
+
+    return score
+
+
+def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5, strategy: str = "balanced") -> List[Tuple[Dict, float, str]]:
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
+
+    strategy: "balanced" | "vibe_match" | "trend_chaser"
     """
-    scored = [(song, score_song(song, user_prefs)) for song in songs]
+    _score_fns = {
+        "balanced":     score_song,
+        "vibe_match":   score_song_vibe_match,
+        "trend_chaser": score_song_trend_chaser,
+    }
+    score_fn = _score_fns.get(strategy, score_song)
+
+    scored = [(song, score_fn(song, user_prefs)) for song in songs]
     ranked = sorted(scored, key=lambda pair: pair[1], reverse=True)
     return [(song, s, explain_song(song, user_prefs)) for song, s in ranked[:k]]

@@ -3,3 +3,4 @@ pytest
 streamlit
 colorama
 tabulate
+questionary
