@@ -105,6 +105,36 @@ Use this section to document the experiments you ran. For example:
 - What happened when you added tempo or valence to the score
 - How did your system behave for different types of users
 
+### User Profile Outputs
+
+**rock_user** — genre: rock, mood: intense, energy: 0.90, acoustic: no
+
+![rock_user output](docs/user_1.png)
+
+---
+
+**lofi_user** — genre: lofi, mood: chill, energy: 0.38, acoustic: yes
+
+**pop_user** — genre: pop, mood: happy, energy: 0.75, acoustic: no
+
+![lofi_user and pop_user output](docs/user_2.png)
+
+---
+
+**jazz_user** — genre: jazz, mood: relaxed, energy: 0.45, acoustic: yes
+
+**edm_user** — genre: edm, mood: energetic, energy: 0.95, acoustic: no
+
+![jazz_user and edm_user output](docs/user_3.png)
+
+---
+
+**sad_fan** *(edge case)* — genre: folk, mood: melancholic, energy: 0.30, acoustic: yes — tests whether the algorithm unfairly boosts high-valence songs for users who prefer dark/sad music.
+
+**walking_contradiction** *(edge case)* — genre: metal, mood: relaxed, energy: 0.95, acoustic: yes — every preference conflicts with another; the algorithm silently picks whichever song loses the least.
+
+![sad_fan and walking_contradiction output](docs/user_edgecase.png)
+
 ---
 
 ## Limitations and Risks
