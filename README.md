@@ -156,6 +156,33 @@ A well-matched but obscure song will lose to a high-popularity 2023 release. Bes
 
 ---
 
+### Diversity, Novelty, and Fairness
+
+After scoring, a **greedy artist diversity re-ranking pass** assembles the top-k list to prevent one artist from monopolizing all results (a "filter bubble").
+
+**How it works:** Instead of simply slicing the k highest scores, the system selects songs one at a time. Each time a candidate is evaluated, a cumulative penalty is applied to its *effective score* based on how many of its artist's songs are already selected:
+
+```
+effective_score = raw_score − (0.4 × songs already selected from this artist)
+```
+
+A second song from the same artist must outscore the next-best alternative by **≥ 0.4** to still be chosen; a third must outscore by **≥ 0.8**, and so on. The raw score is preserved for display — only the selection order changes.
+
+**Why this improves fairness:**
+
+| Without diversity re-ranking | With diversity re-ranking |
+|---|---|
+| One artist with many catalog entries fills all 5 slots | Each extra song from that artist faces a rising penalty |
+| Niche artists are structurally crowded out | Niche artists face no penalty — their first song competes at full score |
+| User is exposed to a narrow slice of the catalog | Top-k spans more artists every run |
+
+**Example:** Artist A has three songs all scoring ~7.0; Artist B has one song scoring ~6.7. Without re-ranking, Artist A takes all three top slots. With re-ranking, Artist A's third song carries an effective score of 7.0 − 0.8 = 6.2, so Artist B's 6.7 wins that slot instead.
+
+**Constant:** `ARTIST_DIVERSITY_PENALTY = 0.4` in [src/recommender.py](src/recommender.py).
+**Test:** `test_diversity_rerank_surfaces_minority_artist` in [tests/test_recommender.py](tests/test_recommender.py).
+
+---
+
 ### CLI Output
 
 The CLI is interactive — arrow keys select a user profile and ranking strategy, then results are displayed in a formatted table. Run with:
@@ -284,7 +311,7 @@ Genre matching provides a flat +3.0 to the score, theoretically affecting rankin
 
 **Genre still dominates** — Even with the similarity graph, genre carries the highest weight (3.0). An exact genre match still adds a +3.0 bonus that mood + energy alone cannot fully overcome. Cross-genre discovery is more possible than before (via partial credit) but the system still strongly favors the user's stated genre.
 
-**No diversity enforcement** — The top-k result is a pure score sort. All 5 recommendations can still collapse into the same genre/mood cluster. There is no mechanism to enforce artist or genre variety across the final list.
+**Genre cluster risk remains** — Artist diversity is now enforced (see below), but all 5 recommendations can still belong to the same genre/mood cluster. There is no genre-level variety mechanism.
 
 **Out-of-catalog genre falls back silently** — If a user's `favorite_genre` has no exact or adjacent match in the catalog (e.g., `edm_user`), all genre scores are 0 and the system falls back to mood and energy with no user-facing message.
 
@@ -305,6 +332,7 @@ Genre matching provides a flat +3.0 to the score, theoretically affecting rankin
 | Unconditional valence boost | `target_valence` in user profile — valence now scored as proximity |
 | No repeat awareness | `listen_history` + recency-weighted decay penalty |
 | No artist personalization | `liked_artists` bonus and `discovery_mode` penalty |
+| Artist filter bubble | Diversity re-ranking — artist penalty prevents one artist dominating top-k |
 
 ---
 

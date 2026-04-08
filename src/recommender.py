@@ -13,6 +13,9 @@ WEIGHT_INSTRUMENTAL  = 0.75
 WEIGHT_POPULARITY    = 0.5
 WEIGHT_ERA           = 0.5
 
+# Diversity: penalty subtracted per additional song already selected from the same artist
+ARTIST_DIVERSITY_PENALTY = 0.4
+
 # Genre similarity graph — partial credit for adjacent genres
 # Keys are (user_genre, song_genre) tuples; values are similarity scores 0–1
 GENRE_SIMILARITY: Dict[Tuple[str, str], float] = {
@@ -90,13 +93,34 @@ class Recommender:
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
         """Returns the top-k Song objects ranked by compatibility with the given user profile."""
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        import dataclasses
+        user_dict = dataclasses.asdict(user)
+        scored: List[Tuple[Song, float]] = [
+            (song, score_song(dataclasses.asdict(song), user_dict))
+            for song in self.songs
+        ]
+        ranked = sorted(scored, key=lambda pair: pair[1], reverse=True)
+
+        # Diversity re-ranking (artist-level)
+        artist_count: Dict[str, int] = {}
+        result: List[Song] = []
+        remaining = list(ranked)
+        while len(result) < k and remaining:
+            best_idx, best_eff = 0, None
+            for i, (s, raw) in enumerate(remaining):
+                count = artist_count.get(s.artist.lower(), 0)
+                eff = raw - ARTIST_DIVERSITY_PENALTY * count
+                if best_eff is None or eff > best_eff:
+                    best_eff, best_idx = eff, i
+            s, _ = remaining.pop(best_idx)
+            artist_count[s.artist.lower()] = artist_count.get(s.artist.lower(), 0) + 1
+            result.append(s)
+        return result
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
         """Returns a human-readable string explaining why a song was recommended to the user."""
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        import dataclasses
+        return explain_song(dataclasses.asdict(song), dataclasses.asdict(user))
 
 
 def score_song(song: Dict, user_prefs: Dict) -> float:
@@ -356,6 +380,39 @@ def score_song_trend_chaser(song: Dict, user_prefs: Dict) -> float:
     return score
 
 
+def _diversity_rerank(scored: List[Tuple[Dict, float]], k: int) -> List[Tuple[Dict, float]]:
+    """
+    Greedy artist-diversity re-ranking to prevent filter bubbles.
+
+    Iteratively builds the top-k list.  Before selecting each candidate,
+    an artist-penalty is applied to its effective score:
+
+        effective_score = raw_score - ARTIST_DIVERSITY_PENALTY * (# times artist already in result)
+
+    A second song from the same artist must outscore the next-best alternative
+    by at least ARTIST_DIVERSITY_PENALTY (0.4) to still be chosen; a third song
+    must outscore by at least 0.8; and so on.  The raw score is preserved for
+    display purposes — only the selection order changes.
+    """
+    artist_count: Dict[str, int] = {}
+    result: List[Tuple[Dict, float]] = []
+    remaining = list(scored)
+
+    while len(result) < k and remaining:
+        best_idx, best_eff = 0, None
+        for i, (song, raw) in enumerate(remaining):
+            count = artist_count.get(song["artist"].lower(), 0)
+            eff = raw - ARTIST_DIVERSITY_PENALTY * count
+            if best_eff is None or eff > best_eff:
+                best_eff, best_idx = eff, i
+
+        song, raw = remaining.pop(best_idx)
+        artist_count[song["artist"].lower()] = artist_count.get(song["artist"].lower(), 0) + 1
+        result.append((song, raw))
+
+    return result
+
+
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5, strategy: str = "balanced") -> List[Tuple[Dict, float, str]]:
     """
     Functional implementation of the recommendation logic.
@@ -372,4 +429,5 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5, strategy: s
 
     scored = [(song, score_fn(song, user_prefs)) for song in songs]
     ranked = sorted(scored, key=lambda pair: pair[1], reverse=True)
-    return [(song, s, explain_song(song, user_prefs)) for song, s in ranked[:k]]
+    diverse = _diversity_rerank(ranked, k)
+    return [(song, s, explain_song(song, user_prefs)) for song, s in diverse]
