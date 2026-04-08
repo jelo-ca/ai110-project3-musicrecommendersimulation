@@ -19,3 +19,43 @@ id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness,ye
 18,Sunday Stroll,Breezy Pines,acoustic,relaxed,0.41,94,0.78,0.50,0.95,2021,42,0.35
 19,Club After Dark,DJ Velour,hip-hop,energetic,0.88,102,0.66,0.92,0.12,2022,70,0.06
 20,Celeste,Aurora Vale,classical,melancholic,0.30,72,0.45,0.28,0.88,2020,40,0.80
+21,Voltage Drop,SynthStorm,edm,energetic,0.94,138,0.72,0.90,0.04,2022,74,0.45
+22,Neon Horizon,Pulse Unit,edm,intense,0.96,145,0.65,0.88,0.03,2023,68,0.60
+23,Deep Drop,Circuit Ghost,edm,chill,0.55,120,0.58,0.80,0.10,2021,52,0.75
+24,Velvet Smoke,Jade Monroe,r&b,relaxed,0.55,88,0.76,0.72,0.35,2022,66,0.08
+25,Golden Hour,Ray Summers,r&b,happy,0.70,98,0.85,0.80,0.28,2023,71,0.05
+26,Midnight Blue,Lena Voss,r&b,moody,0.48,82,0.42,0.65,0.40,2021,58,0.10
+27,Dusty Roads,The Pines,country,relaxed,0.45,96,0.72,0.58,0.82,2020,44,0.15
+28,Campfire Sky,Hank Dillon,country,chill,0.38,88,0.78,0.52,0.90,2021,38,0.20
+29,Rodeo Heart,Sierra Blaze,country,energetic,0.78,116,0.80,0.74,0.55,2022,54,0.08
+30,Aftershock,Red Signal,rock,intense,0.89,148,0.45,0.70,0.08,2022,60,0.15
+31,Glass Horizon,Static Wave,rock,moody,0.72,128,0.40,0.64,0.15,2021,52,0.12
+32,Rainy Afternoon,The Quartet,jazz,chill,0.32,76,0.68,0.50,0.92,2020,36,0.55
+33,Swing & Sway,Leo Hartman,jazz,happy,0.58,105,0.82,0.68,0.72,2019,48,0.40
+34,River Song,Cedar & Stone,folk,relaxed,0.30,72,0.70,0.42,0.96,2020,32,0.25
+35,Autumn Leaves,Wren Calloway,folk,melancholic,0.28,65,0.30,0.38,0.98,2021,28,0.30
+36,Burn Slow,Maya Rhodes,soul,relaxed,0.52,85,0.75,0.60,0.55,2022,55,0.10
+37,Fire in the Rain,James Calloway,soul,moody,0.65,95,0.50,0.68,0.42,2020,50,0.08
+38,Nocturne in Gray,The Philharmonic,classical,melancholic,0.25,60,0.30,0.22,0.99,2019,34,0.98
+39,Spring Waltz,Ensemble Lumiere,classical,happy,0.42,100,0.80,0.45,0.97,2021,38,0.95
+40,Chain Reaction,Forged in Fire,metal,intense,0.97,172,0.32,0.60,0.05,2022,44,0.28
+41,Shatter Point,Molten Core,metal,intense,0.95,165,0.28,0.55,0.07,2020,40,0.22
+42,Orbit,Nova Star,k-pop,energetic,0.90,135,0.85,0.92,0.06,2023,82,0.04
+43,Pastel Dream,Bloom Unit,k-pop,happy,0.82,128,0.90,0.88,0.10,2022,78,0.03
+44,Neon Rain,Eclipse,k-pop,moody,0.75,118,0.55,0.84,0.08,2023,70,0.05
+45,Phase Shift,Datawave,electronic,focused,0.72,124,0.58,0.82,0.07,2022,56,0.86
+46,Zero Gravity,Pulse Unit,electronic,energetic,0.85,132,0.68,0.88,0.06,2023,62,0.70
+47,Street Anthem,Mic Theory,hip-hop,intense,0.85,95,0.60,0.88,0.08,2022,72,0.05
+48,Late Night Drive,Cloud Nine,hip-hop,chill,0.62,85,0.65,0.78,0.20,2021,64,0.10
+49,Block Stories,Urban Ink,hip-hop,moody,0.70,92,0.48,0.82,0.12,2023,58,0.08
+50,Signal Drift,Sable Drift,ambient,focused,0.20,52,0.55,0.28,0.99,2022,26,0.99
+51,Cloud Atlas,Orbit Bloom,ambient,relaxed,0.25,58,0.70,0.32,0.98,2021,30,0.97
+52,Sunday Paper,The Willows,indie pop,chill,0.58,108,0.76,0.72,0.45,2022,54,0.12
+53,Tangerine Sky,Marigold,indie pop,happy,0.70,116,0.82,0.78,0.38,2023,60,0.08
+54,Retro Drive,Chrome Echo,synthwave,moody,0.78,112,0.52,0.76,0.18,2021,56,0.65
+55,Laser Grid,Neon Echo,synthwave,energetic,0.88,128,0.68,0.84,0.10,2022,62,0.72
+56,Salsa Nights,Trio Caliente,latin,energetic,0.90,145,0.90,0.94,0.25,2023,72,0.10
+57,Bossa Nova Beach,Mara Quinn,latin,relaxed,0.45,88,0.80,0.65,0.75,2021,50,0.30
+58,Morning Porch,Breezy Pines,acoustic,happy,0.38,90,0.82,0.48,0.97,2022,36,0.40
+59,Ember & Stone,Cedar & Stone,acoustic,melancholic,0.32,76,0.35,0.42,0.96,2020,30,0.45
+60,Study Break,LoRoom,lofi,focused,0.36,74,0.62,0.56,0.82,2023,50,0.88

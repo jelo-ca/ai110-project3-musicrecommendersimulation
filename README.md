@@ -21,34 +21,34 @@ From my understanding, real-world recommendations work by finding patterns withi
 
 ### Song Features:
 
-| Feature | Type | Description |
-|---|---|---|
-| `genre` | string | Musical genre (pop, rock, jazz, lofi, etc.) |
-| `mood` | string | Emotional mood (happy, chill, intense, melancholic, etc.) |
-| `energy` | float 0–1 | Intensity and activity level |
-| `acousticness` | float 0–1 | Acoustic vs. electronic character |
-| `valence` | float 0–1 | Emotional positivity (0 = dark, 1 = bright) |
-| `tempo_bpm` | float | Beats per minute |
-| `danceability` | float 0–1 | Rhythmic suitability for dancing |
-| `instrumentalness` | float 0–1 | Degree of instrumental vs. vocal content |
-| `popularity` | int 0–100 | Popularity score (higher = more mainstream) |
-| `year` | int | Release year |
+| Feature            | Type      | Description                                               |
+| ------------------ | --------- | --------------------------------------------------------- |
+| `genre`            | string    | Musical genre (pop, rock, jazz, lofi, etc.)               |
+| `mood`             | string    | Emotional mood (happy, chill, intense, melancholic, etc.) |
+| `energy`           | float 0–1 | Intensity and activity level                              |
+| `acousticness`     | float 0–1 | Acoustic vs. electronic character                         |
+| `valence`          | float 0–1 | Emotional positivity (0 = dark, 1 = bright)               |
+| `tempo_bpm`        | float     | Beats per minute                                          |
+| `danceability`     | float 0–1 | Rhythmic suitability for dancing                          |
+| `instrumentalness` | float 0–1 | Degree of instrumental vs. vocal content                  |
+| `popularity`       | int 0–100 | Popularity score (higher = more mainstream)               |
+| `year`             | int       | Release year                                              |
 
 ### User Features:
 
-| Feature | Type | Default | Description |
-|---|---|---|---|
-| `favorite_genre` | string | required | Target genre for matching |
-| `mood_weights` | dict | required | Weighted mood preferences, e.g. `{"happy": 0.7, "energetic": 0.3}` |
-| `target_energy` | float | required | Preferred energy level (0–1) |
-| `likes_acoustic` | bool | required | Preference for acoustic vs. electronic sound |
-| `target_valence` | float | `0.5` | Preferred emotional tone (0 = dark, 1 = bright) |
-| `prefers_instrumental` | bool | `False` | Rewards high instrumentalness when True |
-| `prefers_mainstream` | bool | `False` | Rewards high popularity scores when True |
-| `preferred_decade` | int | `2020` | Preferred release era (e.g. 1990, 2010, 2023) |
-| `liked_artists` | list | `[]` | Artists the user follows — triggers familiarity bonus |
-| `discovery_mode` | bool | `False` | Penalizes known artists to surface new ones |
-| `listen_history` | list | `[]` | Song IDs heard recently (oldest → newest) — triggers repeat decay |
+| Feature                | Type   | Default  | Description                                                        |
+| ---------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| `favorite_genre`       | string | required | Target genre for matching                                          |
+| `mood_weights`         | dict   | required | Weighted mood preferences, e.g. `{"happy": 0.7, "energetic": 0.3}` |
+| `target_energy`        | float  | required | Preferred energy level (0–1)                                       |
+| `likes_acoustic`       | bool   | required | Preference for acoustic vs. electronic sound                       |
+| `target_valence`       | float  | `0.5`    | Preferred emotional tone (0 = dark, 1 = bright)                    |
+| `prefers_instrumental` | bool   | `False`  | Rewards high instrumentalness when True                            |
+| `prefers_mainstream`   | bool   | `False`  | Rewards high popularity scores when True                           |
+| `preferred_decade`     | int    | `2020`   | Preferred release era (e.g. 1990, 2010, 2023)                      |
+| `liked_artists`        | list   | `[]`     | Artists the user follows — triggers familiarity bonus              |
+| `discovery_mode`       | bool   | `False`  | Penalizes known artists to surface new ones                        |
+| `listen_history`       | list   | `[]`     | Song IDs heard recently (oldest → newest) — triggers repeat decay  |
 
 With the limited amount of data, the user profile will only contain configurations either automatically calculated (determined by their listening data) OR manually set by the user.
 
@@ -89,7 +89,7 @@ score = 3.00 × genre_similarity(song.genre, user.favorite_genre)          ← g
 
 The CLI offers three interchangeable ranking strategies. Each uses the same song catalog and user profile but re-weights the scoring components to answer a different question.
 
-#### 1. Balanced *(default)*
+#### 1. Balanced _(default)_
 
 The standard approach — all components contribute proportionally.
 
@@ -141,18 +141,18 @@ A well-matched but obscure song will lose to a high-popularity 2023 release. Bes
 
 #### Strategy Comparison
 
-| Component | Balanced | Vibe Match | Trend Chaser |
-|---|:---:|:---:|:---:|
-| Genre similarity | 3.00 | 0.50 | 0.75 |
-| Mood match | 2.00 | 5.00 | 1.50 |
-| Energy proximity | 1.50 | 4.00 | 1.00 |
-| Valence proximity | 0.50 | 2.00 | — |
-| Acousticness | 1.00 | 2.00 | — |
-| Instrumentalness | 0.75 | 0.50 | — |
-| Artist bonus | 0.50 | — | — |
-| Popularity | 0.50 | — | 5.00 |
-| Era affinity | 0.50 | — | 3.00 *(anchored to 2024)* |
-| Repeat decay | −0.50 | −0.50 | −0.50 |
+| Component         | Balanced | Vibe Match |       Trend Chaser        |
+| ----------------- | :------: | :--------: | :-----------------------: |
+| Genre similarity  |   3.00   |    0.50    |           0.75            |
+| Mood match        |   2.00   |    5.00    |           1.50            |
+| Energy proximity  |   1.50   |    4.00    |           1.00            |
+| Valence proximity |   0.50   |    2.00    |             —             |
+| Acousticness      |   1.00   |    2.00    |             —             |
+| Instrumentalness  |   0.75   |    0.50    |             —             |
+| Artist bonus      |   0.50   |     —      |             —             |
+| Popularity        |   0.50   |     —      |           5.00            |
+| Era affinity      |   0.50   |     —      | 3.00 _(anchored to 2024)_ |
+| Repeat decay      |  −0.50   |   −0.50    |           −0.50           |
 
 ---
 
@@ -160,7 +160,7 @@ A well-matched but obscure song will lose to a high-popularity 2023 release. Bes
 
 After scoring, a **greedy artist diversity re-ranking pass** assembles the top-k list to prevent one artist from monopolizing all results (a "filter bubble").
 
-**How it works:** Instead of simply slicing the k highest scores, the system selects songs one at a time. Each time a candidate is evaluated, a cumulative penalty is applied to its *effective score* based on how many of its artist's songs are already selected:
+**How it works:** Instead of simply slicing the k highest scores, the system selects songs one at a time. Each time a candidate is evaluated, a cumulative penalty is applied to its _effective score_ based on how many of its artist's songs are already selected:
 
 ```
 effective_score = raw_score − (0.4 × songs already selected from this artist)
@@ -170,11 +170,11 @@ A second song from the same artist must outscore the next-best alternative by **
 
 **Why this improves fairness:**
 
-| Without diversity re-ranking | With diversity re-ranking |
-|---|---|
-| One artist with many catalog entries fills all 5 slots | Each extra song from that artist faces a rising penalty |
-| Niche artists are structurally crowded out | Niche artists face no penalty — their first song competes at full score |
-| User is exposed to a narrow slice of the catalog | Top-k spans more artists every run |
+| Without diversity re-ranking                           | With diversity re-ranking                                               |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| One artist with many catalog entries fills all 5 slots | Each extra song from that artist faces a rising penalty                 |
+| Niche artists are structurally crowded out             | Niche artists face no penalty — their first song competes at full score |
+| User is exposed to a narrow slice of the catalog       | Top-k spans more artists every run                                      |
 
 **Example:** Artist A has three songs all scoring ~7.0; Artist B has one song scoring ~6.7. Without re-ranking, Artist A takes all three top slots. With re-ranking, Artist A's third song carries an effective score of 7.0 − 0.8 = 6.2, so Artist B's 6.7 wins that slot instead.
 
@@ -325,14 +325,14 @@ Genre matching provides a flat +3.0 to the score, theoretically affecting rankin
 
 ### Fixed in this version
 
-| Previously a bias | How it was addressed |
-|---|---|
-| Binary genre lock-in | Genre similarity graph — partial credit for adjacent genres (0.3–0.7) |
-| Binary mood lock-in | Multi-mood `mood_weights` dict — normalized weighted match |
-| Unconditional valence boost | `target_valence` in user profile — valence now scored as proximity |
-| No repeat awareness | `listen_history` + recency-weighted decay penalty |
-| No artist personalization | `liked_artists` bonus and `discovery_mode` penalty |
-| Artist filter bubble | Diversity re-ranking — artist penalty prevents one artist dominating top-k |
+| Previously a bias           | How it was addressed                                                       |
+| --------------------------- | -------------------------------------------------------------------------- |
+| Binary genre lock-in        | Genre similarity graph — partial credit for adjacent genres (0.3–0.7)      |
+| Binary mood lock-in         | Multi-mood `mood_weights` dict — normalized weighted match                 |
+| Unconditional valence boost | `target_valence` in user profile — valence now scored as proximity         |
+| No repeat awareness         | `listen_history` + recency-weighted decay penalty                          |
+| No artist personalization   | `liked_artists` bonus and `discovery_mode` penalty                         |
+| Artist filter bubble        | Diversity re-ranking — artist penalty prevents one artist dominating top-k |
 
 ---
 
@@ -344,8 +344,13 @@ Read and complete `model_card.md`:
 
 Write 1 to 2 paragraphs here about what you learned:
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+Building this showed that even simple rules can produce both surprisingly good and surprisingly unfair results depending on the user. It made me realize how much work a "like" button on a real app is probably doing behind the scenes and how much data has to go to an recommendation algorithm.
+
+I mainly used AI to structure most of the data and tests. Comparing results required me to run the program multiple times so I used Claude to run it and show me the table of the compared results.
+
+The basic math used within the recommender did a lot for providing accurate results but there are very clear gaps especially with how the bpm points were calculated. There's a lot more math to look into to make this truly accurate since all the results is also based off of a users hard input on preference.
+
+If I were to extend this project, I would try to explore how to automate user preference through collecting their listening history data. I think once thats solid, this could be a true music recommender algorithm used for a small music app.
 
 ---
 

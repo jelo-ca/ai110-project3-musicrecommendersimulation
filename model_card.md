@@ -1,92 +1,80 @@
 # 🎧 Model Card: Music Recommender Simulation
 
-## 1. Model Name  
+## 1. Model Name
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
-
----
-
-## 2. Intended Use  
-
-Describe what your recommender is designed to do and who it is for. 
-
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+Vibefy 1.0
 
 ---
 
-## 3. How the Model Works  
+## 2. Intended Use
 
-Explain your scoring approach in simple language.  
-
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+Vibefy recommends songs based on a user's preferred genre, mood, and energy level. It is a classroom simulation built to explore how music recommenders work, not a real app.
 
 ---
 
-## 4. Data  
+## 3. How the Model Works
 
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+Each song gets points based on how well it matches what the user likes — genre and mood are worth the most, followed by energy level, tempo, and whether the song is acoustic. The song with the highest total score is recommended first.
 
 ---
 
-## 5. Strengths  
+## 4. Data
 
-Where does your system seem to work well  
+**Data changes:**
 
-Prompts:  
+- Added 55 songs to the original 5-song starter catalog
+- No songs were removed
 
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+**Gaps:**
+
+- hyperpop (1 song) and pop (2 songs) are too thin to recommend reliably
+- No "sad", "romantic", or "motivational" moods
+- No world music beyond latin and k-pop (e.g., Afrobeats, reggae)
+
+60 songs across 20 genres and 8 moods.
+
+| Genre(s)                                                                                                              | Count  |
+| --------------------------------------------------------------------------------------------------------------------- | ------ |
+| lofi, ambient, hip-hop                                                                                                | 4 each |
+| rock, jazz, synthwave, indie pop, latin, folk, electronic, soul, metal, acoustic, classical, edm, r&b, country, k-pop | 3 each |
+| pop                                                                                                                   | 2      |
+| hyperpop                                                                                                              | 1      |
+
+| Mood                             | Count  |
+| -------------------------------- | ------ |
+| happy, relaxed                   | 9 each |
+| chill, intense, moody, energetic | 8 each |
+| focused, melancholic             | 5 each |
 
 ---
 
-## 6. Limitations and Bias 
+## 5. Strengths
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+It works best when the user's preferred genre has several songs in the catalog — the top result usually feels right. Rock and lofi users in particular got results that matched exactly what you would expect.
 
 ---
 
-## 7. Evaluation  
+## 6. Limitations and Bias
+
+The system always gives bonus points to upbeat-sounding songs, even for users who prefer darker or sadder music. It also struggles when a user's favorite genre has very few songs in the catalog, and it never explains why a song was recommended.
+
+---
+
+## 7. Evaluation
 
 ### Profiles Tested
 
 Seven user profiles were run against the 20-song catalog. Each profile was inspected by hand — looking at which songs landed in the top 5, how wide the score gaps were, and whether the result "made sense" given what the user supposedly wanted.
 
-| Profile | Genre | Mood | Energy | Acoustic |
-|---|---|---|---|---|
-| rock_user | rock | intense | 0.90 | no |
-| lofi_user | lofi | chill | 0.38 | yes |
-| pop_user | pop | happy | 0.75 | no |
-| jazz_user | jazz | relaxed | 0.45 | yes |
-| edm_user | edm | energetic | 0.95 | no |
-| sad_fan *(edge)* | folk | melancholic | 0.30 | yes |
-| walking_contradiction *(edge)* | metal | relaxed | 0.95 | yes |
+| Profile                         | Genre | Mood        | Energy | Acoustic |
+| ------------------------------- | ----- | ----------- | ------ | -------- |
+| rock_user                       | rock  | intense     | 0.90   | no       |
+| lofi_user                       | lofi  | chill       | 0.38   | yes      |
+| pop_user                        | pop   | happy       | 0.75   | no       |
+| jazz_user                       | jazz  | relaxed     | 0.45   | yes      |
+| edm_user                        | edm   | energetic   | 0.95   | no       |
+| sad*fan *(edge)\_               | folk  | melancholic | 0.30   | yes      |
+| walking*contradiction *(edge)\_ | metal | relaxed     | 0.95   | yes      |
 
 ### What Was Looked For
 
@@ -114,25 +102,18 @@ For each profile, the main question was: does the top result feel obviously corr
 
 ---
 
-## 8. Future Work  
+## 8. Future Work
 
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+Adding a short "why this song?" note would help users understand and trust the results. Letting users rate songs and updating their profile based on feedback would also make recommendations more accurate over time.
 
 ---
 
-## 9. Personal Reflection  
+## 9. Personal Reflection
 
-A few sentences about your experience.  
+Building this showed that even simple rules can produce both surprisingly good and surprisingly unfair results depending on the user. It made me realize how much work a "like" button on a real app is probably doing behind the scenes and how much data has to go to an recommendation algorithm.
 
-Prompts:  
+I mainly used AI to structure most of the data and tests. Comparing results required me to run the program multiple times so I used Claude to run it and show me the table of the compared results.
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+The basic math used within the recommender did a lot for providing accurate results but there are very clear gaps especially with how the bpm points were calculated. There's a lot more math to look into to make this truly accurate since all the results is also based off of a users hard input on preference.
+
+If I were to extend this project, I would try to explore how to automate user preference through collecting their listening history data. I think once thats solid, this could be a true music recommender algorithm used for a small music app.
