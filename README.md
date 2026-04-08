@@ -17,7 +17,7 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-From my understanding, real-world recommendations work by finding patterns within multiple users' behavioral data. Users are made a "taste" profile about items they prefer through their behavior. For songs, its about the minutes they spend listening, skips, likes, saves. A user's profile is then compared to another user's who has similar taste and are recommended a "people who like this also liked...". For this to work, songs must be analyzed to recognize the patterns within them as well. Someone may like both classical music and rock, but another may only like rock. Suggesting classical to the latter can disrupt their listening experience.
+From my understanding, real-world recommendations work by finding patterns within multiple users' behavioral data. Users are made a "taste" profile about items they prefer through their behavior. For songs, its about the minutes they spend listening, skips, likes, saves. A user's profile is then compared to another user's who has similar taste and are recommended a "people who like this also liked...". For this to work, songs must be categorized to recognize the metadata within them as well. Someone may like both classical music and rock, but another may only like rock. Suggesting classical to the latter can disrupt their listening experience.
 
 ### Song Features:
 
@@ -190,6 +190,22 @@ The CLI is interactive — arrow keys select a user profile and ranking strategy
 ```bash
 python -m src.main
 ```
+
+#### CLI Stretch Goals
+
+**1. Profile selection** — choose from 10 pre-built user profiles:
+
+![Profile selection screen](docs/stretch_1.png)
+
+**2. Strategy selection** — pick a ranking strategy (shown here: `discovery_user` with Vibe Match):
+
+![Strategy selection screen](docs/stretch_2.png)
+
+**3. Results** — top-5 recommendations with per-song score breakdowns:
+
+![Recommendations for discovery_user (Vibe Match)](docs/stretch_3.png)
+
+![Recommendations for rock_user (Trend Chaser)](docs/stretch_4.png)
 
 ## Getting Started
 
